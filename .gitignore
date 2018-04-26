@@ -1,22 +1,21 @@
-# Compiled class file
-*.class
+/.build/
+/deploy.properties
+/build.properties
+/runtime.properties
+/ontology/public/catalog-v0001.xml
 
-# Log file
-*.log
+rdf/auth/firsttime/test-user-model.owl
+utilities/solrtester/.work
+utilities/rdbmigration/.work
 
-# BlueJ files
-*.ctxt
+**/.idea
+**/*.iml
+**/target
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
+**/overlays
 
-# Package Files #
-*.jar
-*.war
-*.ear
-*.zip
-*.tar.gz
-*.rar
-
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
+# Eclipse artifacts
+**/.settings
+**/.classpath
+**/.project
+**/bin/
