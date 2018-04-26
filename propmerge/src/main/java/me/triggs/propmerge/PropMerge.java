@@ -1,9 +1,9 @@
 package me.triggs.propmerge;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 public class PropMerge {
@@ -51,7 +51,9 @@ public class PropMerge {
                 inputProps.add(readProperties(inputFile));
             }
 
-            try (BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile))) {
+            try (BufferedWriter bw = new BufferedWriter(
+                    new OutputStreamWriter(new FileOutputStream(outputFile), Charset.forName("UTF-8").newEncoder()))
+                ) {
                 try (BufferedReader br = new BufferedReader(new FileReader(templateFile))) {
                     boolean skipLine = false;
                     String line;
