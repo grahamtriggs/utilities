@@ -24,11 +24,11 @@ public class PropMerge {
                 }
             } else {
                 if (outputFile == null) {
-                    outputFile = resolveFile(arg);
+                    outputFile = resolveFile(arg, false);
                 } else if (templateFile == null) {
-                    templateFile = resolveFile(arg);
+                    templateFile = resolveFile(arg, true);
                 } else {
-                    inputFiles.add(resolveFile(arg));
+                    inputFiles.add(resolveFile(arg, true));
                 }
             }
         }
@@ -51,18 +51,51 @@ public class PropMerge {
                 inputProps.add(readProperties(inputFile));
             }
 
-            for (Map.Entry<Object, Object> templateEntry : templateProps.entrySet()) {
-                for (Properties inputProp : inputProps) {
-                    if (inputProp.contains(templateEntry.getKey())) {
-                        outputProps.put(templateEntry.getKey(), inputProp.get(templateEntry.getKey()));
-                        break;
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile))) {
+                try (BufferedReader br = new BufferedReader(new FileReader(templateFile))) {
+                    boolean skipLine = false;
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        if (skipLine) {
+                            if (!line.endsWith("\\")) {
+                                skipLine = false;
+                            }
+                        } else if (line.contains("=")) {
+                            String key = line.split("=")[0].trim();
+                            if (key.startsWith("#")) {
+                                bw.write(line);
+                                bw.newLine();
+                            } else {
+                                boolean matchedKey = false;
+                                for (Properties inputProp : inputProps) {
+                                    if (inputProp.containsKey(key)) {
+                                        matchedKey = true;
+                                        bw.write(key);
+                                        bw.write(" = ");
+                                        bw.write(inputProp.getProperty(key));
+                                        bw.newLine();
+                                        break;
+                                    }
+                                }
+
+                                if (matchedKey) {
+                                    if (line.endsWith("\\")) {
+                                        skipLine = true;
+                                    }
+                                } else {
+                                    bw.write(line);
+                                    bw.newLine();
+                                }
+
+                            }
+                        } else {
+                            bw.write(line);
+                            bw.newLine();
+                        }
                     }
                 }
-
-                outputProps.putIfAbsent(templateEntry.getKey(), templateEntry.getValue());
             }
 
-            outputProps.store(new FileOutputStream(outputFile), null);
         } catch (Exception e) {
 
         }
@@ -80,12 +113,14 @@ public class PropMerge {
         System.err.println("If no option is supplied, default is to find exact matches");
     }
 
-    private static File resolveFile(String filename) {
+    private static File resolveFile(String filename, boolean mustExist) {
         File file = new File(filename);
 
-        if (!file.exists() || !file.isFile()) {
-            System.out.println(filename + " does not exist");
-            System.exit(1);
+        if (mustExist) {
+            if (!file.exists() || !file.isFile()) {
+                System.out.println(filename + " does not exist");
+                System.exit(1);
+            }
         }
 
         return file;
